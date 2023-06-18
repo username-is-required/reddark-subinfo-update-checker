@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.354.0",
     "@octokit/core": "^4.2.4"
   }
 }
