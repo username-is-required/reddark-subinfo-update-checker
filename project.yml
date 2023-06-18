@@ -5,9 +5,11 @@ packages:
       SPACES_KEY: "${SPACES_KEY}"
       SPACES_SECRET: "${SPACES_SECRET}"
       SPACES_BUCKET: "${SPACES_BUCKET}"
-    functions:
+    actions:
       - name: john-oliver
         runtime: "nodejs:default"
+        web: false
+        main: ''
         triggers:
           - name: run-every-hour
             sourceType: scheduler
