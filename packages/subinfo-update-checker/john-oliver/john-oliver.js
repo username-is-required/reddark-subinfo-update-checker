@@ -297,18 +297,28 @@ async function main() {
             let subHasStoredStickiedPosts = await subHasStoredStickiedPosts(subName);
             if (subHasStoredStickiedPosts) {
                 let prevStickiedPosts = await getPrevStickiedPosts(subName);
-                if (
+                if (stickiedPosts.length == prevStickiedPosts.length) {
+                    let allStickiedPostsMatch = true;
+                    
+                    for (let i in stickiedPosts) {
+                        if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
+                            allStickiedPostsMatch = false;
+                            break;
+                        }
+                    }
+                    
+                    if (allStickiedPostsMatch) {
+                        // all checks have passed - this sub doesn't need review
+                        continue;
+                    }
+                }
             }
 
             // if we're here, we need to flag a manual review
-
-            let prevNumOfStickiedPosts = await getPrevNumberOfStickiedPosts(subName);
-            if (stickiedPosts.length != prevNumOfStickiedPosts) {
-                // different number of stickied posts to last time - flag for review
-            }
+            createGithubRemovalIssue(subName);
             
-            // if we're here, the sub needs a manual review
-            await setNumberOfStickiedPosts(stickiedPosts
+            // save the stickied posts for next time
+            await saveStickiedPosts(stickiedPosts);
         } else {
             for (let post of [post1, post2]) {
                 let postText = post.selftext.toLowerCase();
