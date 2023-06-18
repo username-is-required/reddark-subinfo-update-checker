@@ -244,12 +244,12 @@ async function createGithubIssue(title, body) {
     await wait(5000);
 }
 
-async function createGithubAdditionIssue(subName, postLink) {
+async function createGithubAdditionIssue(subName) {
     let issueTemplatePath = path.join(__dirname, "template-issues", "potential-addition.md");
     let issueTemplate = await getFileContents(issueTemplatePath);
     
     let title = "🤖 possible new johnoliver sub: " + subName;
-    let body = issueTemplate.replaceAll("%subname%", subName).replaceAll("%post-link%", postLink);
+    let body = issueTemplate.replaceAll("%subname%", subName);
     
     await createGithubIssue(title, body);
 }
@@ -327,6 +327,28 @@ async function main() {
         } else {
             // sub is not recorded as being johnolivered
             
+            // do any of the stickied posts contain the words john oliver?
+            let containsJohnOliver = false;
+            for (post of stickiedPosts) {
+                if (post.selftext.toLowerCase().includes("john oliver")) {
+                    containsJohnOliver = true;
+                    break;
+                }
+            }
+
+            if (containsJohnOliver) {
+                console.log(subName + ": matches john oliver filter. checking if review required");
+                
+                let subHasStoredStickiedPosts = await subHasStoredStickiedPosts(subName);
+                if (subHasStoredStickiedPosts) {
+
+                }
+                
+                console.log(subName + ": requires human check. flagging for manual review");
+                
+                // if we're here, we need to flag a manual review
+                
+            }
         }
         
         // wait before next request (pls dont hate me reddit)
