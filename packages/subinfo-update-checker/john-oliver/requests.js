@@ -9,7 +9,7 @@ module.exports = {
                 method: 'GET',
                 timeout: 300000,
                 headers: {
-                    "User-Agent": "Reddark (https://github.com/username-is-required/Reddark)",
+                    "User-Agent": "Reddark Subinfo Update Checker (https://github.com/username-is-required/reddark-subinfo-update-checker)",
                     //'Range': "bytes=0-50"
                 }
             };
