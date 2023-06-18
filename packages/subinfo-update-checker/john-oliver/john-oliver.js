@@ -25,7 +25,7 @@ async function fetchValidJsonData(url) {
 async function getParticipatingSubsList() {
     let subs = [];
     
-    let data = fetchValidJsonData("/r/ModCoord/wiki/index.json");
+    let data = await fetchValidJsonData("/r/ModCoord/wiki/index.json");
     let text = data['data']['content_md'];
     let lines = text.split("\n");
     
