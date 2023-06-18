@@ -16,7 +16,7 @@ const octokit = new Octokit({
     auth: process.env.GITHUB_ACCESS_TOKEN
 });
 
-const s3 = new S3({
+const s3 = new S3Client({
     forcePathStyle: false,
     endpoint: "https://fra1.digitaloceanspaces.com",
     credentials: {
@@ -168,7 +168,7 @@ async function subHasStoredStickiedPosts(subName) {
         Key: path
     }
 
-    let command = HeadObjectCommand(params);
+    let command = new HeadObjectCommand(params);
     
     try {
         await s3.send(command);
@@ -198,7 +198,7 @@ async function getPrevStickiedPosts(subName) {
     
 }
 
-async function saveStickiedPosts(subName, stickiedPosts) }
+async function saveStickiedPosts(subName, stickiedPosts) {
     if (stickiedPosts.length > 2) throw new Error("cannot be more than 2 stickied posts to save");
 
     for (let i in stickiedPosts) {
