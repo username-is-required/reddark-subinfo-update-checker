@@ -2,11 +2,23 @@ const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
 const { Octokit } = require("@octokit/core");
+const { S3Client } = require("@aws-sdk/client-s3");
 const request = require("./requests.js");
+
 
 const octokit = new Octokit({
     auth: process.env.GITHUB_ACCESS_TOKEN
 });
+
+const s3Client = new S3({
+    forcePathStyle: false,
+    endpoint: "https://fra1.digitaloceanspaces.com",
+    credentials: {
+        accessKeyId: process.env.SPACES_KEY,
+        secretAccessKey: process.env.SPACES_SECRET
+    }
+});
+
 
 // helper function to wait for some time
 function wait(ms) {
@@ -25,6 +37,16 @@ async function getFileContents(path) {
     }
 
     return fileData.toString();
+}
+
+// helper function to get the contents of a file stored in the cloud
+async function getCloudFileContents(path) {
+
+}
+
+// helper function to save a file with given name and contents to the cloud
+async function saveCloudFile(path, contents) {
+
 }
 
 async function fetchValidJsonData(url) {
@@ -141,24 +163,32 @@ async function main() {
     console.log("Looping over participating subs");
     for (let subName of subNames) {
         // is the sub already part of the john oliver cult?
-        let subAlreadyJohnOliverified = johnOliverSubs.includes(subName);
+        let subAlreadyJohnOlivered = johnOliverSubs.includes(subName);
+        
         let subData = await getSubData(subName);
         
-        // extract the data of the first two posts in that sub's data
-        // (if there are any, i believe they should be the - max - two stickied posts)
-        let post1 = subData.data.children[0].data;
-        let post2 = subData.data.children[1].data;
+        // extract the data of the stickied posts in that sub's data
+        let stickiedPosts = [];
+        for (let post of subData.data.children) {
+            let postData = post.data;
+            if (postData.stickied) stickiedPosts.push(postData);
+            else break; // if it's not stickied that means we've gone past the stickied posts
+        }
         
-        for (let post of [post1, post2]) {
-            let postText = post.selftext.toLowerCase();
-            let stickied = post.stickied;
-
-            if (stickied && postText.includes("john oliver")) {
-                // potential johnolivered sub
-
-
-
+        if (subAlreadyJohnOlivered) {
+            // sub is already recorded as taking part in the john oliver protest.
+            // just to be safe, if there is any change to its pinned posts
+            // since last time, flag it for manual review
+            
+        } else {
+            for (let post of [post1, post2]) {
+                let postText = post.selftext.toLowerCase();
+                let stickied = post.stickied;
                 
+                if (stickied && postText.includes("john oliver")) {
+                    // potential johnolivered sub
+
+                }
             }
         }
     }
