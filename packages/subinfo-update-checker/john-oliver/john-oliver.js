@@ -12,7 +12,7 @@ async function fetchValidJsonData(url) {
     try {
         data = JSON.parse(data);
     } catch (err) {
-        console.log("Request to Reddit errored (bad JSON) [will retry]");
+        console.log(url + ": Request to Reddit errored (bad JSON) [will retry]");
         
         // now we wait for 5 seconds and try it again
         await wait(5000);
@@ -41,13 +41,38 @@ async function getParticipatingSubsList() {
     return subs;
 }
 
+async function getSubData(subName) {
+    let subData = {};
+    
+    let data = await fetchValidJsonData("/" + subName + ".json");
+    
+    try {
+        if (typeof (data['message']) != "undefined" && data['error'] == 500) {
+            throw new Error("500");
+        }
+
+        subData = data;
+    } catch (err) {
+        console.log("/" + subName + ".json: Request to Reddit errored (will retry in 5s) - " + err);
+        
+        // now wait for 5s and try again
+        await wait(5000);
+        subData = await getSubData(subName);
+    }
+
+    return subData;
+}
+
 async function main() {
     console.log("** Started function **");
 
     console.log("Getting list of participating subs");
-    let subs = getParticipatingSubsList();
+    let subNames = await getParticipatingSubsList();
 
-    
+    console.log("Looping over participating subs");
+    for (let subName of subNames) {
+        let subData = await getSubData(subName);
+    }
 }
 
 exports.main = main;
