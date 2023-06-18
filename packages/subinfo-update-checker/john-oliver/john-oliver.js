@@ -200,7 +200,9 @@ async function getPrevStickiedPosts(subName) {
 
 async function saveStickiedPosts(subName, stickiedPosts) {
     if (stickiedPosts.length > 2) throw new Error("cannot be more than 2 stickied posts to save");
-
+    
+    await setNumberOfStickiedPosts(stickiedPosts.length);
+    
     for (let i in stickiedPosts) {
         await saveCloudFile(
             subName + "/" + CLOUD_OBJECT_NAMES["STICKIED_" + (i+1)],
@@ -243,12 +245,12 @@ async function createGithubAdditionIssue(subName, postLink) {
     await createGithubIssue(title, body);
 }
 
-async function createGithubRemovalIssue(subName, postLink) {
+async function createGithubRemovalIssue(subName) {
     let issueTemplatePath = path.join(__dirname, "template-issues", "potential-removal.md");
     let issueTemplate = await getFileContents(issueTemplatePath);
     
     let title = "🤖 possible johnoliver sub removal: " + subName;
-    let body = issueTemplate.replaceAll("%subname%", subName).replaceAll("%post-link%", postLink);
+    let body = issueTemplate.replaceAll("%subname%", subName);
 
     await createGithubIssue(title, body);
 }
@@ -282,6 +284,14 @@ async function main() {
             // sub is already recorded as taking part in the john oliver protest.
             // just to be safe, if there is any change to its pinned posts
             // since last time, flag it for manual review
+            
+            let needsReview = false;
+            
+            if (!subHasStoredStickiedPosts(subName)) {
+                // sub doesn't have its stickied posts stored, so there is nothing to compare against
+                // flag for review
+                await createGithubRemovalIssue(
+            }
 
             let prevNumOfStickiedPosts = await getPrevNumberOfStickiedPosts(subName);
             if (stickiedPosts.length != prevNumOfStickiedPosts) {
