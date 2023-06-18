@@ -371,7 +371,7 @@ async function main() {
         }
         
         // wait before next request (pls dont hate me reddit)
-        await wait(50);
+        await wait(20);
     }
 
     // we're done! (hopefully)
