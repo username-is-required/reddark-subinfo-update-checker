@@ -1,6 +1,10 @@
 const { Octokit } = require("@octokit/core");
 const request = require("./requests.js");
 
+const octokit = new Octokit({
+    auth: process.env.GITHUB_ACCESS_TOKEN
+});
+
 // helper function to wait for some time
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -69,8 +73,14 @@ async function main() {
     console.log("Getting list of participating subs");
     let subNames = await getParticipatingSubsList();
 
+    console.log("Getting list of currently johnoliverified subs");
+    let johnOliverSubs = await fetchValidJsonData("https://cdn.jsdelivr.net/gh/username-is-required/reddark-subinfo@main/john-oliver-subs.json");
+    johnOliverSubs = johnOliverSubs.johnOliverSubs;
+    
     console.log("Looping over participating subs");
     for (let subName of subNames) {
+        // is the sub already part of the john oliver cult?
+        let subAlreadyJohnOliverified = johnOliverSubs.includes(subName);
         let subData = await getSubData(subName);
         
         // extract the data of the first two posts in that sub's data
@@ -84,6 +94,9 @@ async function main() {
 
             if (stickied && postText.includes("john oliver")) {
                 // potential johnolivered sub
+
+
+
                 
             }
         }
