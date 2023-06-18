@@ -2,7 +2,7 @@ const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
 const { Octokit } = require("@octokit/core");
-const { S3Client } = require("@aws-sdk/client-s3");
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const request = require("./requests.js");
 
 
@@ -10,7 +10,7 @@ const octokit = new Octokit({
     auth: process.env.GITHUB_ACCESS_TOKEN
 });
 
-const s3Client = new S3({
+const s3 = new S3({
     forcePathStyle: false,
     endpoint: "https://fra1.digitaloceanspaces.com",
     credentials: {
@@ -28,8 +28,8 @@ function wait(ms) {
 // helper function to read a file and return the data
 async function getFileContents(path) {
     try {
-        let fileHandle = fsPromises.open(path);
-        let fileData = await fileHandle.readFile();
+        var fileHandle = fsPromises.open(path);
+        var fileData = await fileHandle.readFile();
     } catch (err) {
         console.log("Error occurred when reading file " + path + ": " + err);
         console.log("Exiting process");
@@ -39,9 +39,36 @@ async function getFileContents(path) {
     return fileData.toString();
 }
 
+// helper function to convert a stream to a string
+function streamToString(stream) {
+    let chunks = [];
+    
+    return new Promise((resolve, reject) => {
+        stream.on("data", chunk => chunks.push(Buffer.from(chunk)));
+        stream.on("error", err => reject(err));
+        stream.on("end", () => resolve(Buffer.concat(chunks).toString()));
+    });
+}
+
 // helper function to get the contents of a file stored in the cloud
 async function getCloudFileContents(path) {
+    let params = {
+        Bucket: process.env.SPACES_BUCKET,
+        Key: path
+    };
 
+    let command = new GetObjectCommand(params);
+    
+    try {
+        var response = await s3.send(command);
+        var contents = await streamToString(response.Body);
+    } catch (err) {
+        console.log("Error occurred when reading file from DO Spaces - " + path + ": " + err);
+        console.log("Exiting process");
+        process.exit(1);
+    }
+
+    return contents;
 }
 
 // helper function to save a file with given name and contents to the cloud
