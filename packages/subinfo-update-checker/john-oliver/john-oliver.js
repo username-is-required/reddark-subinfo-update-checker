@@ -166,6 +166,21 @@ async function setNumberOfStickiedPosts(subName, numOfStickiedPosts) {
     );
 }
 
+async function getPrevStickiedPosts(subName) {
+    
+}
+
+async function saveStickiedPosts(subName, stickiedPosts) }
+    if (stickiedPosts.length > 2) throw new Error("cannot be more than 2 stickied posts to save");
+
+    for (let i in stickiedPosts) {
+        await saveCloudFile(
+            subName + "/" + CLOUD_OBJECT_NAMES["STICKIED_" + (i+1)],
+            stickiedPosts[i].selftext
+        );
+    }
+}
+
 async function createGithubIssue(title, body) {
     try {
         await octokit.request('POST /repos/{owner}/{repo}/issues', {
@@ -239,7 +254,14 @@ async function main() {
             // sub is already recorded as taking part in the john oliver protest.
             // just to be safe, if there is any change to its pinned posts
             // since last time, flag it for manual review
+
+            let prevNumOfStickiedPosts = await getPrevNumberOfStickiedPosts(subName);
+            if (stickiedPosts.length != prevNumOfStickiedPosts) {
+                // different number of stickied posts to last time - flag for review
+            }
             
+            // if we're here, the sub needs a manual review
+            await setNumberOfStickiedPosts(stickiedPosts
         } else {
             for (let post of [post1, post2]) {
                 let postText = post.selftext.toLowerCase();
@@ -251,6 +273,9 @@ async function main() {
                 }
             }
         }
+        
+        // wait before next request
+        await wait(50);
     }
 }
 
