@@ -194,8 +194,15 @@ async function setNumberOfStickiedPosts(subName, numOfStickiedPosts) {
     );
 }
 
-async function getPrevStickiedPosts(subName) {
+async function getPrevStickiedPostsText(subName, prevNumOfStickiedPosts) {
+    prevStickiedPostsText = [];
     
+    for (let i = 0; i < prevNumOfStickiedPosts; i++) {
+        let postText = await getCloudFileContents(subName + "/" + CLOUD_OBJECT_NAMES["STICKIED_" + (i+1)]);
+        prevStickiedPostsText.push(postText);
+    }
+
+    return prevStickiedPostsText;
 }
 
 async function saveStickiedPosts(subName, stickiedPosts) {
