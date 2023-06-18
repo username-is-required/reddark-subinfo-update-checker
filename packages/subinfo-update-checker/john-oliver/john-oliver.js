@@ -2,7 +2,7 @@ const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
 const { Octokit } = require("@octokit/core");
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const request = require("./requests.js");
 
 
@@ -28,15 +28,15 @@ function wait(ms) {
 // helper function to read a file and return the data
 async function getFileContents(path) {
     try {
-        var fileHandle = fsPromises.open(path);
-        var fileData = await fileHandle.readFile();
+        let fileHandle = fsPromises.open(path);
+        let fileData = await fileHandle.readFile();
+        
+        return fileData.toString()
     } catch (err) {
         console.log("Error occurred when reading file " + path + ": " + err);
         console.log("Exiting process");
         process.exit(1);
     }
-
-    return fileData.toString();
 }
 
 // helper function to convert a stream to a string
@@ -60,20 +60,34 @@ async function getCloudFileContents(path) {
     let command = new GetObjectCommand(params);
     
     try {
-        var response = await s3.send(command);
-        var contents = await streamToString(response.Body);
+        let response = await s3.send(command);
+        let contents = await streamToString(response.Body);
+
+        return contents;
     } catch (err) {
-        console.log("Error occurred when reading file from DO Spaces - " + path + ": " + err);
+        console.log("Error occurred when reading file from Spaces - " + path + ": " + err);
         console.log("Exiting process");
         process.exit(1);
     }
-
-    return contents;
 }
 
 // helper function to save a file with given name and contents to the cloud
 async function saveCloudFile(path, contents) {
+    let params = {
+        Bucket: process.env.SPACES_BUCKET,
+        Key: path,
+        Body: contents
+    };
 
+    let command = new PutObjectCommand(params);
+
+    try {
+        s3.send(command);
+    } catch (err) {
+        console.log("Error occurred when writing file to Spaces - " + path + ": " + err);
+        console.log("Exiting process");
+        process.exit(1);
+    }
 }
 
 async function fetchValidJsonData(url) {
