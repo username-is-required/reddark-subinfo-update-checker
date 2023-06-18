@@ -1,6 +1,6 @@
 ## [%subname%](https://old.reddit.com/%subname%)
 
-at least one of the two possible stickied posts on the subreddit has changed, and includes a mention of john oliver: [link to post](%post-link%)
+at least one of the two possible stickied posts on the subreddit has changed, and at least one includes a mention of john oliver.
 
 human maintainer: please **review whether this subreddit has been johnoliverified**.
 
