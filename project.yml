@@ -10,6 +10,8 @@ packages:
         runtime: "nodejs:default"
         web: false
         main: ''
+        limits:
+          timeout: 1800000
         triggers:
           - name: run-every-hour
             sourceType: scheduler
