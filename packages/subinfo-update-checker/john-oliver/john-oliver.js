@@ -20,6 +20,13 @@ const s3 = new S3({
 });
 
 
+const CLOUD_OBJECT_NAMES = {
+    STICKIED_POSTS_NUMBER: "stickied-posts-number.txt",
+    STICKIED_1: "stickied-1.txt",
+    STICKIED_2: "stickied-2.txt"
+};
+
+
 // helper function to wait for some time
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -145,6 +152,18 @@ async function getSubData(subName) {
     }
 
     return subData;
+}
+
+async function getPrevNumberOfStickiedPosts(subName) {
+    let data = await getCloudFileContents(subName + "/" + CLOUD_OBJECT_NAMES.STICKIED_POSTS_NUMBER);
+    return parseInt(data);
+}
+
+async function setNumberOfStickiedPosts(subName, numOfStickiedPosts) {
+    await saveCloudFile(
+        subName + "/" + CLOUD_OBJECT_NAMES.STICKIED_POSTS_NUMBER,
+        numOfStickiedPosts.toString()
+    );
 }
 
 async function createGithubIssue(title, body) {
