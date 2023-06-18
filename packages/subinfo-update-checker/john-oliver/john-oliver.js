@@ -293,6 +293,8 @@ async function main() {
             // sub is already recorded as taking part in the john oliver protest.
             // just to be safe, if there is any change to its pinned posts
             // since last time, flag it for manual review
+            
+            console.log(subName + ": already johnolivered. checking if review required");
 
             let subHasStoredStickiedPosts = await subHasStoredStickiedPosts(subName);
             if (subHasStoredStickiedPosts) {
@@ -309,10 +311,13 @@ async function main() {
                     
                     if (allStickiedPostsMatch) {
                         // all checks have passed - this sub doesn't need review
+                        console.log(subName + ": checks passed, no review required");
                         continue;
                     }
                 }
             }
+
+            console.log(subName + ": one or more checks failed. flagging for manual review");
 
             // if we're here, we need to flag a manual review
             createGithubRemovalIssue(subName);
@@ -320,18 +325,11 @@ async function main() {
             // save the stickied posts for next time
             await saveStickiedPosts(stickiedPosts);
         } else {
-            for (let post of [post1, post2]) {
-                let postText = post.selftext.toLowerCase();
-                let stickied = post.stickied;
-                
-                if (stickied && postText.includes("john oliver")) {
-                    // potential johnolivered sub
-
-                }
-            }
+            // sub is not recorded as being johnolivered
+            
         }
         
-        // wait before next request
+        // wait before next request (pls dont hate me reddit)
         await wait(50);
     }
 }
