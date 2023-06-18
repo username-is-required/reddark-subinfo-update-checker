@@ -1,5 +1,10 @@
 packages:
   - name: subinfo-update-checker
+    environment:
+      GITHUB_ACCESS_TOKEN: "${GITHUB_ACCESS_TOKEN}"
+      SPACES_KEY: "${SPACES_KEY}"
+      SPACES_SECRET: "${SPACES_SECRET}"
+      SPACES_BUCKET: "${SPACES_BUCKET}"
     functions:
       - name: john-oliver
         runtime: "nodejs:default"
