@@ -1,6 +1,6 @@
 ## %subname%
 
-the [**%post-num% post**](%post-link%) on the subreddit has changed, and it includes a mention of john oliver.
+at least one of the two possible stickied posts on the subreddit has changed, and includes a mention of john oliver: [link to post](%post-link%)
 
 human maintainer: please **review whether this subreddit has been johnoliverified**.
 
