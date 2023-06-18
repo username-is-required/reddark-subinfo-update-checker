@@ -9,3 +9,5 @@ The script is currently set to run every half hour.
 The following environment variables must be set:
 
  - `GITHUB_ACCESS_TOKEN`
+ - `SPACES_KEY`
+ - `SPACES_SECRET`
