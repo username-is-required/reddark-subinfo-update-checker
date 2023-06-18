@@ -194,8 +194,10 @@ async function setNumberOfStickiedPosts(subName, numOfStickiedPosts) {
     );
 }
 
-async function getPrevStickiedPostsText(subName, prevNumOfStickiedPosts) {
-    prevStickiedPostsText = [];
+async function getPrevStickiedPostsText(subName) {
+    let prevStickiedPostsText = [];
+
+    let prevNumOfStickiedPosts = await getPrevNumberOfStickiedPosts(subName);
     
     for (let i = 0; i < prevNumOfStickiedPosts; i++) {
         let postText = await getCloudFileContents(subName + "/" + CLOUD_OBJECT_NAMES["STICKIED_" + (i+1)]);
@@ -291,14 +293,14 @@ async function main() {
             // sub is already recorded as taking part in the john oliver protest.
             // just to be safe, if there is any change to its pinned posts
             // since last time, flag it for manual review
-            
-            let needsReview = false;
-            
-            if (!subHasStoredStickiedPosts(subName)) {
-                // sub doesn't have its stickied posts stored, so there is nothing to compare against
-                // flag for review
-                await createGithubRemovalIssue(
+
+            let subHasStoredStickiedPosts = await subHasStoredStickiedPosts(subName);
+            if (subHasStoredStickiedPosts) {
+                let prevStickiedPosts = await getPrevStickiedPosts(subName);
+                if (
             }
+
+            // if we're here, we need to flag a manual review
 
             let prevNumOfStickiedPosts = await getPrevNumberOfStickiedPosts(subName);
             if (stickiedPosts.length != prevNumOfStickiedPosts) {
