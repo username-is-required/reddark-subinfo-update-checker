@@ -2,7 +2,13 @@ const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
 const { Octokit } = require("@octokit/core");
-const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {
+    S3Client,
+    GetObjectCommand,
+    PutObjectCommand,
+    HeadObjectCommand,
+    NotFound
+} = require("@aws-sdk/client-s3");
 const request = require("./requests.js");
 
 
@@ -89,7 +95,7 @@ async function saveCloudFile(path, contents) {
     let command = new PutObjectCommand(params);
 
     try {
-        s3.send(command);
+        await s3.send(command);
     } catch (err) {
         console.log("Error occurred when writing file to Spaces - " + path + ": " + err);
         console.log("Exiting process");
@@ -152,6 +158,28 @@ async function getSubData(subName) {
     }
 
     return subData;
+}
+
+async function subHasStoredStickiedPosts(subName) {
+    let path = subName + "/" + CLOUD_OBJECT_NAMES.STICKIED_POSTS_NUMBER;
+    
+    let params = {
+        Bucket: process.env.SPACES_BUCKET,
+        Key: path
+    }
+
+    let command = HeadObjectCommand(params);
+    
+    try {
+        await s3.send(command);
+        return true;
+    } catch (err) {
+        if (err instanceof NotFound) return false;
+        
+        console.log("Error occurred when checking if file exists in Spaces - " + path + ": " + err);
+        console.log("Exiting process");
+        process.exit(1);
+    }
 }
 
 async function getPrevNumberOfStickiedPosts(subName) {
