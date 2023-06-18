@@ -31,4 +31,6 @@ jobs:
           echo "SPACES_BUCKET=${{ secrets.SPACES_BUCKET }}" >> .env
       
       - name: Deploy to DO Functions
-        run: doctl serverless deploy
+        run: |
+          cd ..
+          doctl serverless deploy ${{ github.event.repository.name }}
