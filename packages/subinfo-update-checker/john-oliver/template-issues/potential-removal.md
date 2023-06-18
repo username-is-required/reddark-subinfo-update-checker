@@ -1,6 +1,6 @@
-## %subname%
+## [%subname%](https://reddit.com/%subname%)
 
-this subreddit is currently confirmed as johnoliverified, however there may have been a change to at least one of the two possible stickied posts on the subreddit: [link to post](%post-link%).
+this subreddit is currently confirmed as johnoliverified, however there may have been a change to at least one of the two possible stickied posts on the subreddit.
 
 human maintainer: please **review whether this subreddit is still johnoliverified**.
 
