@@ -1,3 +1,6 @@
+const fs = require("fs");
+const fsPromises = fs.promises;
+const path = require("path");
 const { Octokit } = require("@octokit/core");
 const request = require("./requests.js");
 
@@ -8,6 +11,20 @@ const octokit = new Octokit({
 // helper function to wait for some time
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// helper function to read a file and return the data
+async function getFileContents(path) {
+    try {
+        let fileHandle = fsPromises.open(path);
+        let fileData = await fileHandle.readFile();
+    } catch (err) {
+        console.log("Error occurred when reading file " + path + ": " + err);
+        console.log("Exiting process");
+        process.exit(1);
+    }
+
+    return fileData.toString();
 }
 
 async function fetchValidJsonData(url) {
@@ -65,6 +82,50 @@ async function getSubData(subName) {
     }
 
     return subData;
+}
+
+async function createGithubIssue(title, body) {
+    try {
+        await octokit.request('POST /repos/{owner}/{repo}/issues', {
+            owner: "username-is-required",
+            repo: "reddark-subinfo",
+            title: title,
+            body: body,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        });
+    } catch (err) {
+        console.log("Error creating GitHub issue. Will retry in 10s - " + err);
+
+        await wait(10000);
+        // try again
+        await createGithubIssue(title, body);
+    }
+    
+    // wait 5s after creating the issue
+    // (trying to not be rate limited by github here)
+    await wait(5000);
+}
+
+async function createGithubAdditionIssue(subName, postLink) {
+    let issueTemplatePath = path.join(__dirname, "template-issues", "potential-addition.md");
+    let issueTemplate = await getFileContents(issueTemplatePath);
+    
+    let title = "🤖 possible new johnoliver sub: " + subName;
+    let body = issueTemplate.replaceAll("%subname%", subName).replaceAll("%post-link%", postLink);
+    
+    await createGithubIssue(title, body);
+}
+
+async function createGithubRemovalIssue(subName, postLink) {
+    let issueTemplatePath = path.join(__dirname, "template-issues", "potential-removal.md");
+    let issueTemplate = await getFileContents(issueTemplatePath);
+    
+    let title = "🤖 possible johnoliver sub removal: " + subName;
+    let body = issueTemplate.replaceAll("%subname%", subName).replaceAll("%post-link%", postLink);
+
+    await createGithubIssue(title, body);
 }
 
 async function main() {
