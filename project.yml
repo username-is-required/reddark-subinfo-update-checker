@@ -8,3 +8,8 @@ packages:
     functions:
       - name: john-oliver
         runtime: "nodejs:default"
+        triggers:
+          - name: run-every-hour
+            sourceType: scheduler
+            sourceDetails:
+              cron: "30 * * * *"
