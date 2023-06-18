@@ -332,6 +332,9 @@ async function main() {
         // wait before next request (pls dont hate me reddit)
         await wait(50);
     }
+
+    // we're done! (hopefully)
+    console.log("** Function complete **");
 }
 
 exports.main = main;
