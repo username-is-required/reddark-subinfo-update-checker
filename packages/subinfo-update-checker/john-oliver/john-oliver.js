@@ -320,7 +320,7 @@ async function main() {
             console.log(subName + ": one or more checks failed. flagging for manual review");
 
             // if we're here, we need to flag a manual review
-            createGithubRemovalIssue(subName);
+            await createGithubRemovalIssue(subName);
             
             // save the stickied posts for next time
             await saveStickiedPosts(stickiedPosts);
@@ -341,13 +341,32 @@ async function main() {
                 
                 let subHasStoredStickiedPosts = await subHasStoredStickiedPosts(subName);
                 if (subHasStoredStickiedPosts) {
-
+                    let prevStickiedPosts = await getPrevStickiedPosts(subName);
+                    if (stickiedPosts.length == prevStickiedPosts.length) {
+                        let allStickiedPostsMatch = true;
+                        
+                        for (let i in stickiedPosts) {
+                            if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
+                                allStickiedPostsMatch = false;
+                                break;
+                            }
+                        }
+                        
+                        if (allStickiedPostsMatch) {
+                            // all checks have passed - this sub doesn't need review
+                            console.log(subName + ": no change, no review required");
+                            continue;
+                        }
+                    }
                 }
                 
                 console.log(subName + ": requires human check. flagging for manual review");
                 
                 // if we're here, we need to flag a manual review
+                await createGithubAdditionIssue(subName);
                 
+                // save the stickied posts for next time
+                await saveStickiedPosts(stickiedPosts);
             }
         }
         
