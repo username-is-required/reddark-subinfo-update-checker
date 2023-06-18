@@ -26,7 +26,7 @@ async function getParticipatingSubsList() {
     let subs = [];
     
     let data = await fetchValidJsonData("/r/ModCoord/wiki/index.json");
-    let text = data['data']['content_md'];
+    let text = data.data.content_md;
     let lines = text.split("\n");
     
     for (let line of lines) {
@@ -72,6 +72,21 @@ async function main() {
     console.log("Looping over participating subs");
     for (let subName of subNames) {
         let subData = await getSubData(subName);
+        
+        // extract the data of the first two posts in that sub's data
+        // (if there are any, i believe they should be the - max - two stickied posts)
+        let post1 = subData.data.children[0].data;
+        let post2 = subData.data.children[1].data;
+        
+        for (let post of [post1, post2]) {
+            let postText = post.selftext.toLowerCase();
+            let stickied = post.stickied;
+
+            if (stickied && postText.includes("john oliver")) {
+                // potential johnolivered sub
+                
+            }
+        }
     }
 }
 
