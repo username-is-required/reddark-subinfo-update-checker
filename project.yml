@@ -11,7 +11,7 @@ packages:
         web: false
         main: ''
         limits:
-          timeout: 1800000
+          timeout: 900000
         triggers:
           - name: run-every-hour
             sourceType: scheduler
