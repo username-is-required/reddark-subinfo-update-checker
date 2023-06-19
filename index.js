@@ -93,15 +93,12 @@ async function subHasStoredStickiedPosts(subName) {
     return doc.exists;
 }
 
-async function getPrevNumberOfStickiedPosts(subName) {
-    let doc = getSubFirestoreDocRef(subName);
-    doc = await doc.get();
-    return doc.data()[FIRESTORE_FIELDS.STICKIED_POSTS_NUMBER];
-}
-
 async function getPrevStickiedPostsText(subName) {
     let doc = getSubFirestoreDocRef(subName);
     doc = await doc.get();
+
+    if (!doc.exists) return null;
+
     doc = doc.data();
     
     let prevStickiedPostsText = [];
@@ -208,24 +205,21 @@ async function main() {
             
             console.log(subName + ": already johnolivered. checking if review required");
 
-            let subHasStoredStickiedPosts = await subHasStoredStickiedPosts(subName);
-            if (subHasStoredStickiedPosts) {
-                let prevStickiedPosts = await getPrevStickiedPosts(subName);
-                if (stickiedPosts.length == prevStickiedPosts.length) {
-                    let allStickiedPostsMatch = true;
-                    
-                    for (let i in stickiedPosts) {
-                        if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
-                            allStickiedPostsMatch = false;
-                            break;
-                        }
+            let prevStickiedPosts = await getPrevStickiedPosts(subName);
+            if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
+                let allStickiedPostsMatch = true;
+                
+                for (let i in stickiedPosts) {
+                    if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
+                        allStickiedPostsMatch = false;
+                        break;
                     }
-                    
-                    if (allStickiedPostsMatch) {
-                        // all checks have passed - this sub doesn't need review
-                        console.log(subName + ": checks passed, no review required");
-                        continue;
-                    }
+                }
+                
+                if (allStickiedPostsMatch) {
+                    // all checks have passed - this sub doesn't need review
+                    console.log(subName + ": checks passed, no review required");
+                    continue;
                 }
             }
 
@@ -251,24 +245,21 @@ async function main() {
             if (containsJohnOliver) {
                 console.log(subName + ": matches john oliver filter. checking if review required");
                 
-                let subHasStoredStickiedPosts = await subHasStoredStickiedPosts(subName);
-                if (subHasStoredStickiedPosts) {
-                    let prevStickiedPosts = await getPrevStickiedPosts(subName);
-                    if (stickiedPosts.length == prevStickiedPosts.length) {
-                        let allStickiedPostsMatch = true;
-                        
-                        for (let i in stickiedPosts) {
-                            if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
-                                allStickiedPostsMatch = false;
-                                break;
-                            }
+                let prevStickiedPosts = await getPrevStickiedPosts(subName);
+                if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
+                    let allStickiedPostsMatch = true;
+                    
+                    for (let i in stickiedPosts) {
+                        if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
+                            allStickiedPostsMatch = false;
+                            break;
                         }
-                        
-                        if (allStickiedPostsMatch) {
-                            // all checks have passed - this sub doesn't need review
-                            console.log(subName + ": no change, no review required");
-                            continue;
-                        }
+                    }
+                    
+                    if (allStickiedPostsMatch) {
+                        // all checks have passed - this sub doesn't need review
+                        console.log(subName + ": no change, no review required");
+                        continue;
                     }
                 }
                 
