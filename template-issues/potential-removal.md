@@ -10,4 +10,4 @@ if not, remove it from [`john-oliver-subs.json`](https://github.com/username-is-
 
 <hr>
 
-<sup>i am a bot, beep boop. check out my source code [here](https://github.com/username-is-required/reddark-subinfo-update-checker/blob/main/packages/subinfo-update-checker/john-oliver/john-oliver.js)</sup>
+<sup>i am a bot, beep boop. check out my source code [here](https://github.com/username-is-required/reddark-subinfo-update-checker)</sup>
