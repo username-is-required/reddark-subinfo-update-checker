@@ -1,4 +1,4 @@
-## [%subname%](https://reddit.com/%subname%)
+## [%subname%](https://old.reddit.com/%subname%)
 
 this subreddit is currently confirmed as johnoliverified, however there may have been a change to at least one of the two possible stickied posts on the subreddit.
 
