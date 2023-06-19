@@ -132,9 +132,12 @@ async function saveStickiedPosts(subName, stickiedPosts) {
 
     data[FIRESTORE_FIELDS.STICKIED_POSTS_NUMBER] = stickiedPosts.length;
     
-    for (let i in stickiedPosts)
+    for (let i in stickiedPosts) {
+        console.log(FIRESTORE_FIELDS["STICKIED_" + (i+1)]);//for testing
         data[FIRESTORE_FIELDS["STICKIED_" + (i+1)]] = stickiedPosts[i].selftext;
-
+    }
+    console.log(data);process.exit(1);//for testing
+    
     await doc.set(data, { merge: false });
 }
 
@@ -242,7 +245,7 @@ async function main() {
             console.log(subName + ": one or more checks failed. flagging for manual review");
 
             // if we're here, we need to flag a manual review
-            await createGithubRemovalIssue(subName);
+            //await createGithubRemovalIssue(subName);
             
             // save the stickied posts for next time
             await saveStickiedPosts(subName, stickiedPosts);
