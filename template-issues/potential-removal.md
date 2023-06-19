@@ -6,7 +6,7 @@ human maintainer: please **review whether this subreddit is still johnoliverifie
 
 if it is, just close this issue :)
 
-if not, remove it from [`john-oliver-subs.json`](https://github.com/username-is-required/reddark-subinfo/blob/main/john-oliver-subs.json) and [**purge the cdn cache**](https://www.jsdelivr.com/tools/purge).
+if not, remove it from [`john-oliver-subs.json`](https://github.com/username-is-required/reddark-subinfo/blob/main/john-oliver-subs.json) and [**purge the cdn cache**](https://www.jsdelivr.com/tools/purge) <sub>[[jsDelivr link](https://cdn.jsdelivr.net/gh/username-is-required/reddark-subinfo@main/john-oliver-subs.json)]</sub>
 
 <hr>
 
