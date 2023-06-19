@@ -28,7 +28,7 @@ function wait(ms) {
 // helper function to read a file and return the data
 async function getFileContents(path) {
     try {
-        let fileHandle = fsPromises.open(path);
+        let fileHandle = await fsPromises.open(path);
         let fileData = await fileHandle.readFile();
         
         return fileData.toString()
