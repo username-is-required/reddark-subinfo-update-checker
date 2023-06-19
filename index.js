@@ -190,20 +190,22 @@ async function main() {
     let johnOliverSubs = await fetchValidJsonData("https://cdn.jsdelivr.net/gh/username-is-required/reddark-subinfo@main/john-oliver-subs.json");
     johnOliverSubs = johnOliverSubs.johnOliverSubs;
     
+    let subPromises = [];
+    
     console.log("Looping over participating subs");
     for (let subName of subNames) {
         // is the sub already part of the john oliver cult?
         let subAlreadyJohnOlivered = johnOliverSubs.includes(subName.toLowerCase());
 
         // send request for sub data asynchronously
-        getSubData(subName).then(subData => {
+        let subPromise = getSubData(subName).then(subData => {
             // extract the data of the stickied posts in that sub's data
             let stickiedPosts = [];
             
             // if the sub doesn't have data skip over it
             // this probably means the sub is private (i think)
             if (subData.data === undefined) {
-                continue;
+                return;
             }
             
             for (let post of subData.data.children) {
@@ -233,7 +235,7 @@ async function main() {
                     if (allStickiedPostsMatch) {
                         // all checks have passed - this sub doesn't need review
                         console.log(subName + ": checks passed, no review required");
-                        continue;
+                        return;
                     }
                 }
                 
@@ -273,7 +275,7 @@ async function main() {
                         if (allStickiedPostsMatch) {
                             // all checks have passed - this sub doesn't need review
                             console.log(subName + ": no change, no review required");
-                            continue;
+                            return;
                         }
                     }
                     
@@ -287,10 +289,14 @@ async function main() {
                 }
             }
         });
+        
+        subPromises.push(subPromise);
 
         // pls dont hate me reddit api
         await wait(20);
     }
+
+    await Promise.all(subPromises);
 
     // we're done! (hopefully)
     console.log("** Function complete **");
