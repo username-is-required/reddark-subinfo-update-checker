@@ -30,6 +30,7 @@ async function getFileContents(path) {
     try {
         let fileHandle = await fsPromises.open(path);
         let fileData = await fileHandle.readFile();
+        fileHandle.close();
         
         return fileData.toString()
     } catch (err) {
