@@ -238,7 +238,7 @@ async function main() {
             await createGithubRemovalIssue(subName);
             
             // save the stickied posts for next time
-            await saveStickiedPosts(stickiedPosts);
+            await saveStickiedPosts(subName, stickiedPosts);
         } else {
             // sub is not recorded as being johnolivered
             
@@ -278,7 +278,7 @@ async function main() {
                 await createGithubAdditionIssue(subName);
                 
                 // save the stickied posts for next time
-                await saveStickiedPosts(stickiedPosts);
+                await saveStickiedPosts(subName, stickiedPosts);
             }
         }
         
