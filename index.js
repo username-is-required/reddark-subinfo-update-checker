@@ -226,7 +226,7 @@ async function main() {
             if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
                 let allStickiedPostsMatch = true;
                 
-                for (let i in stickiedPosts) {
+                for (let i = 0; i < stickiedPosts.length; i++) {
                     if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
                         allStickiedPostsMatch = false;
                         break;
@@ -266,7 +266,7 @@ async function main() {
                 if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
                     let allStickiedPostsMatch = true;
                     
-                    for (let i in stickiedPosts) {
+                    for (let i = 0; i < stickiedPosts.length; i++) {
                         if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
                             allStickiedPostsMatch = false;
                             break;
