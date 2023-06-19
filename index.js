@@ -1,3 +1,4 @@
+//const { performance } = require('perf_hooks');
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
@@ -193,70 +194,30 @@ async function main() {
     for (let subName of subNames) {
         // is the sub already part of the john oliver cult?
         let subAlreadyJohnOlivered = johnOliverSubs.includes(subName.toLowerCase());
-        
-        let subData = await getSubData(subName);
-        
-        // extract the data of the stickied posts in that sub's data
-        let stickiedPosts = [];
-        
-        // if the sub doesn't have data skip over it
-        // this probably means the sub is private (i think)
-        if (subData.data === undefined) {
-            continue;
-        }
-        
-        for (let post of subData.data.children) {
-            let postData = post.data;
-            if (postData.stickied) stickiedPosts.push(postData);
-            else break; // if it's not stickied that means we've gone past the stickied posts
-        }
-        
-        if (subAlreadyJohnOlivered) {
-            // sub is already recorded as taking part in the john oliver protest.
-            // just to be safe, if there is any change to its pinned posts
-            // since last time, flag it for manual review
-            
-            console.log(subName + ": already johnolivered. checking if review required");
 
-            let prevStickiedPosts = await getPrevStickiedPosts(subName);
-            if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
-                let allStickiedPostsMatch = true;
-                
-                for (let i = 0; i < stickiedPosts.length; i++) {
-                    if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
-                        allStickiedPostsMatch = false;
-                        break;
-                    }
-                }
-                
-                if (allStickiedPostsMatch) {
-                    // all checks have passed - this sub doesn't need review
-                    console.log(subName + ": checks passed, no review required");
-                    continue;
-                }
+        // send request for sub data asynchronously
+        getSubData(subName).then(subData => {
+            // extract the data of the stickied posts in that sub's data
+            let stickiedPosts = [];
+            
+            // if the sub doesn't have data skip over it
+            // this probably means the sub is private (i think)
+            if (subData.data === undefined) {
+                continue;
             }
-
-            console.log(subName + ": one or more checks failed. flagging for manual review");
-
-            // if we're here, we need to flag a manual review
-            await createGithubRemovalIssue(subName);
             
-            // save the stickied posts for next time
-            await saveStickiedPosts(subName, stickiedPosts);
-        } else {
-            // sub is not recorded as being johnolivered
-            
-            // do any of the stickied posts contain the words john oliver?
-            let containsJohnOliver = false;
-            for (post of stickiedPosts) {
-                if (post.selftext.toLowerCase().includes("john oliver")) {
-                    containsJohnOliver = true;
-                    break;
-                }
+            for (let post of subData.data.children) {
+                let postData = post.data;
+                if (postData.stickied) stickiedPosts.push(postData);
+                else break; // if it's not stickied that means we've gone past the stickied posts
             }
-
-            if (containsJohnOliver) {
-                console.log(subName + ": matches john oliver filter. checking if review required");
+            
+            if (subAlreadyJohnOlivered) {
+                // sub is already recorded as taking part in the john oliver protest.
+                // just to be safe, if there is any change to its pinned posts
+                // since last time, flag it for manual review
+                
+                console.log(subName + ": already johnolivered. checking if review required");
                 
                 let prevStickiedPosts = await getPrevStickiedPosts(subName);
                 if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
@@ -271,20 +232,64 @@ async function main() {
                     
                     if (allStickiedPostsMatch) {
                         // all checks have passed - this sub doesn't need review
-                        console.log(subName + ": no change, no review required");
+                        console.log(subName + ": checks passed, no review required");
                         continue;
                     }
                 }
                 
-                console.log(subName + ": requires human check. flagging for manual review");
+                console.log(subName + ": one or more checks failed. flagging for manual review");
                 
                 // if we're here, we need to flag a manual review
-                await createGithubAdditionIssue(subName);
+                await createGithubRemovalIssue(subName);
                 
                 // save the stickied posts for next time
                 await saveStickiedPosts(subName, stickiedPosts);
+            } else {
+                // sub is not recorded as being johnolivered
+                
+                // do any of the stickied posts contain the words john oliver?
+                let containsJohnOliver = false;
+                for (post of stickiedPosts) {
+                    if (post.selftext.toLowerCase().includes("john oliver")) {
+                        containsJohnOliver = true;
+                        break;
+                    }
+                }
+                
+                if (containsJohnOliver) {
+                    console.log(subName + ": matches john oliver filter. checking if review required");
+                    
+                    let prevStickiedPosts = await getPrevStickiedPosts(subName);
+                    if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
+                        let allStickiedPostsMatch = true;
+                        
+                        for (let i = 0; i < stickiedPosts.length; i++) {
+                            if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
+                                allStickiedPostsMatch = false;
+                                break;
+                            }
+                        }
+                        
+                        if (allStickiedPostsMatch) {
+                            // all checks have passed - this sub doesn't need review
+                            console.log(subName + ": no change, no review required");
+                            continue;
+                        }
+                    }
+                    
+                    console.log(subName + ": requires human check. flagging for manual review");
+                    
+                    // if we're here, we need to flag a manual review
+                    await createGithubAdditionIssue(subName);
+                    
+                    // save the stickied posts for next time
+                    await saveStickiedPosts(subName, stickiedPosts);
+                }
             }
-        }
+        });
+
+        // pls dont hate me reddit api
+        await wait(20);
     }
 
     // we're done! (hopefully)
