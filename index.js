@@ -203,7 +203,7 @@ async function main() {
         let stickiedPosts = [];
         
         // some weird error happened here & i want to know which sub caused it
-        if (subData.data === undefined) }
+        if (subData.data === undefined) {
             console.log(subName + ": `data` property undefined");
         }
         
