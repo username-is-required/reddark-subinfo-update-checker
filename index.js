@@ -30,7 +30,7 @@ async function getFileContents(path) {
     try {
         let fileHandle = fsPromises.open(path);
         let fileData = await fileHandle.readFile();
-
+        
         return fileData.toString()
     } catch (err) {
         console.log("Error occurred when reading file " + path + ": " + err);
@@ -51,7 +51,7 @@ async function fetchValidJsonData(url) {
         await wait(5000);
         data = await fetchValidJsonData(url);
     }
-
+    
     return data;
 }
 
