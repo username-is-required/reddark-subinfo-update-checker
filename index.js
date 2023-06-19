@@ -31,7 +31,7 @@ async function fetchValidJsonData(url) {
     try {
         data = JSON.parse(data);
     } catch (err) {
-        console.log(url + ": Request to Reddit errored (bad JSON) [will retry]");
+        console.log(url + ": Request errored (bad JSON) [will retry] - " + url);
         
         // now we wait for 5 seconds and try it again
         await wait(5000);
