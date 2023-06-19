@@ -25,6 +25,20 @@ function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// helper function to read a file and return the data
+async function getFileContents(path) {
+    try {
+        let fileHandle = fsPromises.open(path);
+        let fileData = await fileHandle.readFile();
+
+        return fileData.toString()
+    } catch (err) {
+        console.log("Error occurred when reading file " + path + ": " + err);
+        console.log("Exiting process");
+        process.exit(1);
+    }
+}
+
 async function fetchValidJsonData(url) {
     let data = await request.httpsGet(url);
     
