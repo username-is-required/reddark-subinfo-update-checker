@@ -189,7 +189,7 @@ async function main() {
     let subNames = await getParticipatingSubsList();
 
     console.log("Getting list of currently johnoliverified subs");
-    let johnOliverSubs = await fetchValidJsonData("https://cdn.jsdelivr.net/gh/username-is-required/reddark-subinfo@main/john-oliver-subs.json");
+    let johnOliverSubs = await fetchValidJsonData("https://raw.githubusercontent.com/username-is-required/reddark-subinfo/main/john-oliver-subs.json");
     johnOliverSubs = johnOliverSubs.johnOliverSubs;
     
     let subPromises = [];
