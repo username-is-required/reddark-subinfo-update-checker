@@ -195,7 +195,7 @@ async function main() {
     console.log("Looping over participating subs");
     for (let subName of subNames) {
         // is the sub already part of the john oliver cult?
-        let subAlreadyJohnOlivered = johnOliverSubs.includes(subName);
+        let subAlreadyJohnOlivered = johnOliverSubs.includes(subName.toLowerCase());
         
         let subData = await getSubData(subName);
         
