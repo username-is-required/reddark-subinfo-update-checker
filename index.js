@@ -202,9 +202,10 @@ async function main() {
         // extract the data of the stickied posts in that sub's data
         let stickiedPosts = [];
         
-        // some weird error happened here & i want to know which sub caused it
+        // if the sub doesn't have data skip over it
+        // this probably means the sub is private (i think)
         if (subData.data === undefined) {
-            console.log(subName + ": `data` property undefined");
+            continue;
         }
         
         for (let post of subData.data.children) {
