@@ -87,12 +87,6 @@ function getSubFirestoreDocRef(subName) {
         .doc(subName.substring(2));
 }
 
-async function subHasStoredStickiedPosts(subName) {
-    let doc = getSubFirestoreDocRef(subName);
-    doc = await doc.get();
-    return doc.exists;
-}
-
 async function getPrevStickiedPostsText(subName) {
     let doc = getSubFirestoreDocRef(subName);
     doc = await doc.get();
