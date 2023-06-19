@@ -289,4 +289,4 @@ async function main() {
     console.log("** Function complete **");
 }
 
-exports.main = main;
+main();
