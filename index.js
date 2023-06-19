@@ -2,13 +2,7 @@ const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
 const { Octokit } = require("@octokit/core");
-const {
-    S3Client,
-    GetObjectCommand,
-    PutObjectCommand,
-    HeadObjectCommand,
-    NotFound
-} = require("@aws-sdk/client-s3");
+const { Firestore } = require("@google-cloud/firestore");
 const request = require("./requests.js");
 
 
@@ -16,91 +10,19 @@ const octokit = new Octokit({
     auth: process.env.GITHUB_ACCESS_TOKEN
 });
 
-const s3 = new S3Client({
-    forcePathStyle: false,
-    endpoint: "https://fra1.digitaloceanspaces.com",
-    credentials: {
-        accessKeyId: process.env.SPACES_KEY,
-        secretAccessKey: process.env.SPACES_SECRET
-    }
-});
+const firestore = new Firestore();
 
-
-const CLOUD_OBJECT_NAMES = {
-    STICKIED_POSTS_NUMBER: "stickied-posts-number.txt",
-    STICKIED_1: "stickied-1.txt",
-    STICKIED_2: "stickied-2.txt"
+const FIRESTORE_COLLECTION = "subinfo-update-checker";
+const FIRESTORE_FIELDS = {
+    STICKIED_POSTS_NUMBER: "stickied-posts",
+    STICKIED_1: "stickied-1",
+    STICKIED_2: "stickied-2"
 };
 
 
 // helper function to wait for some time
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// helper function to read a file and return the data
-async function getFileContents(path) {
-    try {
-        let fileHandle = fsPromises.open(path);
-        let fileData = await fileHandle.readFile();
-        
-        return fileData.toString()
-    } catch (err) {
-        console.log("Error occurred when reading file " + path + ": " + err);
-        console.log("Exiting process");
-        process.exit(1);
-    }
-}
-
-// helper function to convert a stream to a string
-function streamToString(stream) {
-    let chunks = [];
-    
-    return new Promise((resolve, reject) => {
-        stream.on("data", chunk => chunks.push(Buffer.from(chunk)));
-        stream.on("error", err => reject(err));
-        stream.on("end", () => resolve(Buffer.concat(chunks).toString()));
-    });
-}
-
-// helper function to get the contents of a file stored in the cloud
-async function getCloudFileContents(path) {
-    let params = {
-        Bucket: process.env.SPACES_BUCKET,
-        Key: path
-    };
-
-    let command = new GetObjectCommand(params);
-    
-    try {
-        let response = await s3.send(command);
-        let contents = await streamToString(response.Body);
-
-        return contents;
-    } catch (err) {
-        console.log("Error occurred when reading file from Spaces - " + path + ": " + err);
-        console.log("Exiting process");
-        process.exit(1);
-    }
-}
-
-// helper function to save a file with given name and contents to the cloud
-async function saveCloudFile(path, contents) {
-    let params = {
-        Bucket: process.env.SPACES_BUCKET,
-        Key: path,
-        Body: contents
-    };
-
-    let command = new PutObjectCommand(params);
-
-    try {
-        await s3.send(command);
-    } catch (err) {
-        console.log("Error occurred when writing file to Spaces - " + path + ": " + err);
-        console.log("Exiting process");
-        process.exit(1);
-    }
 }
 
 async function fetchValidJsonData(url) {
