@@ -163,6 +163,7 @@ async function createGithubIssue(title, body) {
 async function createGithubAdditionIssue(subName) {
     let issueTemplatePath = path.join(__dirname, "template-issues", "potential-addition.md");
     let issueTemplate = await getFileContents(issueTemplatePath);
+    subName = subName.toLowerCase();
     
     let title = "🤖 possible new johnoliver sub: " + subName;
     let body = issueTemplate.replaceAll("%subname%", subName);
@@ -173,6 +174,7 @@ async function createGithubAdditionIssue(subName) {
 async function createGithubRemovalIssue(subName) {
     let issueTemplatePath = path.join(__dirname, "template-issues", "potential-removal.md");
     let issueTemplate = await getFileContents(issueTemplatePath);
+    subName = subName.toLowerCase();
     
     let title = "🤖 possible johnoliver sub removal: " + subName;
     let body = issueTemplate.replaceAll("%subname%", subName);
