@@ -132,11 +132,9 @@ async function saveStickiedPosts(subName, stickiedPosts) {
 
     data[FIRESTORE_FIELDS.STICKIED_POSTS_NUMBER] = stickiedPosts.length;
     
-    for (let i in stickiedPosts) {
-        console.log(FIRESTORE_FIELDS["STICKIED_" + (i+1)]);//for testing
+    for (let i = 0; i < stickiedPosts.length; i++) {
         data[FIRESTORE_FIELDS["STICKIED_" + (i+1)]] = stickiedPosts[i].selftext;
     }
-    console.log(data);process.exit(1);//for testing
     
     await doc.set(data, { merge: false });
 }
@@ -228,7 +226,7 @@ async function main() {
             if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
                 let allStickiedPostsMatch = true;
                 
-                for (let i in stickiedPosts) {
+                for (let i = 0; i < stickiedPosts.length; i++) {
                     if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
                         allStickiedPostsMatch = false;
                         break;
@@ -268,7 +266,7 @@ async function main() {
                 if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
                     let allStickiedPostsMatch = true;
                     
-                    for (let i in stickiedPosts) {
+                    for (let i = 0; i < stickiedPosts.length; i++) {
                         if (stickiedPosts[i].selftext != prevStickiedPosts[i]) {
                             allStickiedPostsMatch = false;
                             break;
