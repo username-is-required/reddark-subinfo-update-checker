@@ -101,7 +101,7 @@ function getSubFirestoreDocRef(subName) {
         .doc(subName.substring(2));
 }
 
-async function getPrevStickiedPostsText(subName) {
+async function getPrevStickiedPosts(subName) {
     let doc = getSubFirestoreDocRef(subName);
     doc = await doc.get();
 
