@@ -201,6 +201,12 @@ async function main() {
         
         // extract the data of the stickied posts in that sub's data
         let stickiedPosts = [];
+        
+        // some weird error happened here & i want to know which sub caused it
+        if (subData.data === undefined) }
+            console.log(subName + ": `data` property undefined");
+        }
+        
         for (let post of subData.data.children) {
             let postData = post.data;
             if (postData.stickied) stickiedPosts.push(postData);
