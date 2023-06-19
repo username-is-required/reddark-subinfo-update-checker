@@ -1,9 +1,9 @@
 {
   "name": "reddark-subinfo-update-checker",
   "license": "AGPL-3.0-only",
-  "main": "index.js"
+  "main": "index.js",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.354.0",
+    "@google-cloud/firestore": "^6.6.1",
     "@octokit/core": "^4.2.4"
   },
   "scripts": {
