@@ -200,7 +200,7 @@ async function main() {
         let subAlreadyJohnOlivered = johnOliverSubs.includes(subName.toLowerCase());
 
         // send request for sub data asynchronously
-        let subPromise = getSubData(subName).then(subData => {
+        let subPromise = getSubData(subName).then(async subData => {
             // extract the data of the stickied posts in that sub's data
             let stickiedPosts = [];
             
