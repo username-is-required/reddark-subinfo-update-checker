@@ -157,10 +157,6 @@ async function createGithubIssue(title, body) {
         // try again
         await createGithubIssue(title, body);
     }
-    
-    // wait 5s after creating the issue
-    // (trying to not be rate limited by github here)
-    await wait(5000);
 }
 
 async function createGithubAdditionIssue(subName) {
@@ -243,7 +239,7 @@ async function main() {
             console.log(subName + ": one or more checks failed. flagging for manual review");
 
             // if we're here, we need to flag a manual review
-            //await createGithubRemovalIssue(subName);
+            await createGithubRemovalIssue(subName);
             
             // save the stickied posts for next time
             await saveStickiedPosts(subName, stickiedPosts);
@@ -289,9 +285,6 @@ async function main() {
                 await saveStickiedPosts(subName, stickiedPosts);
             }
         }
-        
-        // wait before next request (pls dont hate me reddit)
-        await wait(20);
     }
 
     // we're done! (hopefully)
