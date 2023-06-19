@@ -82,47 +82,35 @@ async function getSubData(subName) {
     return subData;
 }
 
-async function subHasStoredStickiedPosts(subName) {
-    let path = subName + "/" + CLOUD_OBJECT_NAMES.STICKIED_POSTS_NUMBER;
-    
-    let params = {
-        Bucket: process.env.SPACES_BUCKET,
-        Key: path
-    }
+function getSubFirestoreDocRef(subName) {
+    return firestore.collection(FIRESTORE_COLLECTION)
+        .doc(subName.substring(2));
+}
 
-    let command = new HeadObjectCommand(params);
-    
-    try {
-        await s3.send(command);
-        return true;
-    } catch (err) {
-        if (err instanceof NotFound) return false;
-        
-        console.log("Error occurred when checking if file exists in Spaces - " + path + ": " + err);
-        console.log("Exiting process");
-        process.exit(1);
-    }
+async function subHasStoredStickiedPosts(subName) {
+    let doc = getSubFirestoreDocRef(subName);
+    doc = await doc.get();
+    return doc.exists;
 }
 
 async function getPrevNumberOfStickiedPosts(subName) {
-    let data = await getCloudFileContents(subName + "/" + CLOUD_OBJECT_NAMES.STICKIED_POSTS_NUMBER);
-    return parseInt(data);
-}
-
-async function setNumberOfStickiedPosts(subName, numOfStickiedPosts) {
-    await saveCloudFile(
-        subName + "/" + CLOUD_OBJECT_NAMES.STICKIED_POSTS_NUMBER,
-        numOfStickiedPosts.toString()
-    );
+    let doc = getSubFirestoreDocRef(subName);
+    doc = await doc.get();
+    return doc.data()[FIRESTORE_FIELDS.STICKIED_POSTS_NUMBER];
 }
 
 async function getPrevStickiedPostsText(subName) {
+    let doc = getSubFirestoreDocRef(subName);
+    doc = await doc.get();
+    doc = doc.data();
+    
     let prevStickiedPostsText = [];
 
-    let prevNumOfStickiedPosts = await getPrevNumberOfStickiedPosts(subName);
+    let prevNumOfStickiedPosts =
+        doc[FIRESTORE_FIELDS.STICKIED_POSTS_NUMBER];
     
     for (let i = 0; i < prevNumOfStickiedPosts; i++) {
-        let postText = await getCloudFileContents(subName + "/" + CLOUD_OBJECT_NAMES["STICKIED_" + (i+1)]);
+        let postText = doc[FIRESTORE_FIELDS["STICKIED_" + (i+1)]];
         prevStickiedPostsText.push(postText);
     }
 
@@ -131,15 +119,17 @@ async function getPrevStickiedPostsText(subName) {
 
 async function saveStickiedPosts(subName, stickiedPosts) {
     if (stickiedPosts.length > 2) throw new Error("cannot be more than 2 stickied posts to save");
+
+    let doc = getSubFirestoreDocRef(subName);
+
+    let data = {};
+
+    data[FIRESTORE_FIELDS.STICKIED_POSTS_NUMBER] = stickiedPosts.length;
     
-    await setNumberOfStickiedPosts(stickiedPosts.length);
-    
-    for (let i in stickiedPosts) {
-        await saveCloudFile(
-            subName + "/" + CLOUD_OBJECT_NAMES["STICKIED_" + (i+1)],
-            stickiedPosts[i].selftext
-        );
-    }
+    for (let i in stickiedPosts)
+        data[FIRESTORE_FIELDS["STICKIED_" + (i+1)]] = stickiedPosts[i].selftext;
+
+    await doc.set(data, { merge: false });
 }
 
 async function createGithubIssue(title, body) {
