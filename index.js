@@ -17,7 +17,8 @@ const FIRESTORE_COLLECTION = "subinfo-update-checker";
 const FIRESTORE_FIELDS = {
     STICKIED_POSTS_NUMBER: "stickied-posts",
     STICKIED_1: "stickied-1",
-    STICKIED_2: "stickied-2"
+    STICKIED_2: "stickied-2",
+    LAST_GITHUB_ISSUE: "last-gh-issue"
 };
 
 
@@ -103,7 +104,7 @@ function getSubFirestoreDocRef(subName) {
         .doc(subName.substring(2));
 }
 
-async function getPrevStickiedPosts(subName) {
+async function getSavedSubData(subName) {
     let doc = getSubFirestoreDocRef(subName);
     doc = await doc.get();
 
@@ -121,10 +122,15 @@ async function getPrevStickiedPosts(subName) {
         prevStickiedPostsText.push(postText);
     }
 
-    return prevStickiedPostsText;
+    let lastGithubIssue = data[FIRESTORE_FIELDS.LAST_GITHUB_ISSUE];
+
+    return {
+        prevStickiedPosts: prevStickiedPostsText,
+        lastGithubIssue: lastGithubIssue
+    };
 }
 
-async function saveStickiedPosts(subName, stickiedPosts) {
+async function saveSubData(subName, stickiedPosts, issueNum) {
     if (stickiedPosts.length > 2) throw new Error("cannot be more than 2 stickied posts to save");
 
     let doc = getSubFirestoreDocRef(subName);
@@ -136,13 +142,17 @@ async function saveStickiedPosts(subName, stickiedPosts) {
     for (let i = 0; i < stickiedPosts.length; i++) {
         data[FIRESTORE_FIELDS["STICKIED_" + (i+1)]] = stickiedPosts[i].selftext;
     }
+
+    data[FIRESTORE_FIELDS.LAST_GITHUB_ISSUE] = issueNum;
     
     await doc.set(data, { merge: false });
 }
 
 async function createGithubIssue(title, body) {
+    let issueData;
+    
     try {
-        await octokit.request('POST /repos/{owner}/{repo}/issues', {
+        issueData = await octokit.request('POST /repos/{owner}/{repo}/issues', {
             owner: "username-is-required",
             repo: "reddark-subinfo",
             title: title,
@@ -156,11 +166,13 @@ async function createGithubIssue(title, body) {
 
         await wait(10000);
         // try again
-        await createGithubIssue(title, body);
+        issueData = await createGithubIssue(title, body);
     }
+
+    return issueData.data.number;
 }
 
-async function createGithubAdditionIssue(subName) {
+async function createGithubAdditionIssue(subName, prevIssueNum) {
     let issueTemplatePath = path.join(__dirname, "template-issues", "potential-addition.md");
     let issueTemplate = await getFileContents(issueTemplatePath);
     subName = subName.toLowerCase();
@@ -168,10 +180,11 @@ async function createGithubAdditionIssue(subName) {
     let title = "🤖 possible new johnoliver sub: " + subName;
     let body = issueTemplate.replaceAll("%subname%", subName);
     
-    await createGithubIssue(title, body);
+    let issueNum = await createGithubIssue(title, body);
+    return issueNum;
 }
 
-async function createGithubRemovalIssue(subName) {
+async function createGithubRemovalIssue(subName, prevIssueNum) {
     let issueTemplatePath = path.join(__dirname, "template-issues", "potential-removal.md");
     let issueTemplate = await getFileContents(issueTemplatePath);
     subName = subName.toLowerCase();
@@ -179,7 +192,8 @@ async function createGithubRemovalIssue(subName) {
     let title = "🤖 possible johnoliver sub removal: " + subName;
     let body = issueTemplate.replaceAll("%subname%", subName);
 
-    await createGithubIssue(title, body);
+    let issueNum = await createGithubIssue(title, body);
+    return issueNum;
 }
 
 async function main() {
@@ -223,7 +237,8 @@ async function main() {
                 
                 console.log(subName + ": already johnolivered. checking if review required");
                 
-                let prevStickiedPosts = await getPrevStickiedPosts(subName);
+                let savedSubData = await getSavedSubData(subName);
+                let prevStickiedPosts = savedSubData.prevStickiedPosts;
                 if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
                     let allStickiedPostsMatch = true;
                     
@@ -244,10 +259,10 @@ async function main() {
                 console.log(subName + ": one or more checks failed. flagging for manual review");
                 
                 // if we're here, we need to flag a manual review
-                await createGithubRemovalIssue(subName);
+                let newIssueNum = await createGithubRemovalIssue(subName, savedSubData.lastGithubIssue);
                 
                 // save the stickied posts for next time
-                await saveStickiedPosts(subName, stickiedPosts);
+                await saveSubData(subName, stickiedPosts, newIssueNum);
             } else {
                 // sub is not recorded as being johnolivered
                 
@@ -263,7 +278,8 @@ async function main() {
                 if (containsJohnOliver) {
                     console.log(subName + ": matches john oliver filter. checking if review required");
                     
-                    let prevStickiedPosts = await getPrevStickiedPosts(subName);
+                    let savedSubData = await getSavedSubData(subName);
+                    let prevStickiedPosts = savedSubData.prevStickiedPosts;
                     if (prevStickiedPosts != null && stickiedPosts.length == prevStickiedPosts.length) {
                         let allStickiedPostsMatch = true;
                         
@@ -284,10 +300,10 @@ async function main() {
                     console.log(subName + ": requires human check. flagging for manual review");
                     
                     // if we're here, we need to flag a manual review
-                    await createGithubAdditionIssue(subName);
+                    let newIssueNum = await createGithubAdditionIssue(subName, savedSubData.lastGithubIssue);
                     
                     // save the stickied posts for next time
-                    await saveStickiedPosts(subName, stickiedPosts);
+                    await saveSubData(subName, stickiedPosts, newIssueNum);
                 }
             }
         });
