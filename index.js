@@ -137,7 +137,8 @@ async function saveStickiedPosts(subName, stickiedPosts) {
         data[FIRESTORE_FIELDS["STICKIED_" + (i+1)]] = stickiedPosts[i].selftext;
     }
     
-    await doc.set(data, { merge: false });
+    let result = await doc.set(data, { merge: false });
+    return result;
 }
 
 async function createGithubIssue(title, body) {
