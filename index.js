@@ -142,8 +142,10 @@ async function saveStickiedPosts(subName, stickiedPosts) {
 }
 
 async function createGithubIssue(title, body) {
+    let result;
+    
     try {
-        await octokit.request('POST /repos/{owner}/{repo}/issues', {
+        result = await octokit.request('POST /repos/{owner}/{repo}/issues', {
             owner: "username-is-required",
             repo: "reddark-subinfo",
             title: title,
@@ -157,8 +159,10 @@ async function createGithubIssue(title, body) {
 
         await wait(10000);
         // try again
-        await createGithubIssue(title, body);
+        result = await createGithubIssue(title, body);
     }
+
+    return result;
 }
 
 async function createGithubAdditionIssue(subName) {
@@ -169,7 +173,8 @@ async function createGithubAdditionIssue(subName) {
     let title = "🤖 possible new johnoliver sub: " + subName;
     let body = issueTemplate.replaceAll("%subname%", subName);
     
-    await createGithubIssue(title, body);
+    let result = await createGithubIssue(title, body);
+    return result;
 }
 
 async function createGithubRemovalIssue(subName) {
@@ -180,7 +185,8 @@ async function createGithubRemovalIssue(subName) {
     let title = "🤖 possible johnoliver sub removal: " + subName;
     let body = issueTemplate.replaceAll("%subname%", subName);
 
-    await createGithubIssue(title, body);
+    let result = await createGithubIssue(title, body);
+return result;
 }
 
 async function main() {
