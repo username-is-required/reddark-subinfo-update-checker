@@ -247,6 +247,8 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         });
+
+        console.warn(fileDetails);
         
         result = await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
             owner: 'username-is-required',
