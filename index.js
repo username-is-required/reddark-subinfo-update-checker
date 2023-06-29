@@ -190,12 +190,30 @@ return result;
 }
 
 async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
-    for (let subToAdd of bannedSubChanges.subsToAdd) {
-        bannedSubsList.push(subToAdd.toLowerCase());
+    // any changes?
+    if (
+        bannedSubChanges.subsToAdd.length == 0
+        && bannedSubChanges.subsToRemove.length == 0
+    ) {
+        console.log("No banned sub changes to process");
+        return;
     }
     
+    let commitMessage = "🤖 automatically updating `banned-subs.json`";
+    
+    commitMessage += "\n\nsubs added:";
+    for (let subToAdd of bannedSubChanges.subsToAdd) {
+        let subName = subToAdd.toLowerCase();
+        bannedSubsList.push(subName);
+        commitMessage += "\n - " + subName;
+    }
+    if (bannedSubChanges.subsToAdd.length == 0) commitMessage += " none";
+
+    commitMessage += "\n\nsubs removed:";
     for (let subToRemove of bannedSubChanges.subsToRemove) {
-        let subIndex = bannedSubsList.indexOf(subToRemove.toLowerCase());
+        let subName = subToRemove.toLowerCase();
+        
+        let subIndex = bannedSubsList.indexOf(subName);
         
         if (subIndex == -1) {
             console.log(subToRemove + ": on list to remove from banned list, but not found on banned list");
@@ -204,11 +222,40 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
         }
         
         bannedSubsList.splice(subIndex, 1);
+        commitMessage += "\n - " + subName;
     }
+    if (bannedSubChanges.subsToRemove.length == 0) commitMessage += " none";
+
+    commitMessage += "\n";
     
     // convert to json and upload updated list to github (if any changes)
-    // todo
-
+    let bannedSubsListJson = JSON.stringify({
+        bannedSubs: bannedSubsList
+    }, null, 4);
+    
+    let result;
+    
+    try {
+         result = await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+            owner: 'username-is-required',
+            repo: 'reddark-subinfo',
+            path: 'banned-subs.json',
+            message: commitMessage,
+            content: Buffer.from(bannedSubsListJson).toString("base64"),
+            sha: idkWtfThisGoesHere, // fix
+            headers: {
+               'X-GitHub-Api-Version': '2022-11-28'
+            }
+        });
+    } catch (err) {
+        console.log("Error updating banned subs list");
+        console.log(err);
+        console.log("Exiting process");
+        process.exit(1);
+    }
+    
+    console.log("Uploaded updated banned subs list to GitHub, commit " + commitRef);
+    
     return result;
 }
 
