@@ -266,7 +266,7 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
         process.exit(1);
     }
     
-    console.log("Uploaded updated banned subs list to GitHub, commit " + commitRef);
+    console.log("Uploaded updated banned subs list to GitHub, commit " + result.commit.sha);
     
     return result;
 }
