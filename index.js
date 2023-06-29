@@ -236,19 +236,31 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
     let result;
     
     try {
-         result = await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+        // use this to get the sha
+        // i know its inefficient as it downloads the whole file
+        // but im tired
+        let fileDetails = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+            owner: 'username-is-required',
+            repo: 'reddark-subinfo',
+            path: 'banned-subs.json',
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        });
+        
+        result = await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
             owner: 'username-is-required',
             repo: 'reddark-subinfo',
             path: 'banned-subs.json',
             message: commitMessage,
             content: Buffer.from(bannedSubsListJson).toString("base64"),
-            sha: idkWtfThisGoesHere, // fix
+            sha: fileDetails.sha,
             headers: {
                'X-GitHub-Api-Version': '2022-11-28'
             }
         });
     } catch (err) {
-        console.log("Error updating banned subs list");
+        console.log("Error while updating banned subs list");
         console.log(err);
         console.log("Exiting process");
         process.exit(1);
