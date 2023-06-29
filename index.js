@@ -247,8 +247,6 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         });
-
-        console.warn(fileDetails);
         
         result = await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
             owner: 'username-is-required',
@@ -256,7 +254,7 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
             path: 'banned-subs.json',
             message: commitMessage,
             content: Buffer.from(bannedSubsListJson).toString("base64"),
-            sha: fileDetails.sha,
+            sha: fileDetails.data.sha,
             headers: {
                'X-GitHub-Api-Version': '2022-11-28'
             }
@@ -268,7 +266,7 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
         process.exit(1);
     }
     
-    console.log("Uploaded updated banned subs list to GitHub, commit " + result.commit.sha);
+    console.log("Uploaded updated banned subs list to GitHub, commit " + result.data.commit.sha);
     
     return result;
 }
