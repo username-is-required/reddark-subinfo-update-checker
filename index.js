@@ -150,6 +150,7 @@ async function createGithubIssue(title, body) {
             repo: "reddark-subinfo",
             title: title,
             body: body,
+            labels: ["john-oliver"],
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
