@@ -189,22 +189,116 @@ async function createGithubRemovalIssue(subName) {
 return result;
 }
 
+async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
+    // any changes?
+    if (
+        bannedSubChanges.subsToAdd.length == 0
+        && bannedSubChanges.subsToRemove.length == 0
+    ) {
+        console.log("No banned sub changes to process");
+        return;
+    }
+    
+    let commitMessage = "🤖 automatically updating `banned-subs.json`";
+    
+    commitMessage += "\n\nsubs added:";
+    for (let subToAdd of bannedSubChanges.subsToAdd) {
+        let subName = subToAdd.toLowerCase();
+        bannedSubsList.push(subName);
+        commitMessage += "\n - " + subName;
+    }
+    if (bannedSubChanges.subsToAdd.length == 0) commitMessage += " none";
+
+    commitMessage += "\n\nsubs removed:";
+    for (let subToRemove of bannedSubChanges.subsToRemove) {
+        let subName = subToRemove.toLowerCase();
+        
+        let subIndex = bannedSubsList.indexOf(subName);
+        
+        if (subIndex == -1) {
+            console.log(subToRemove + ": on list to remove from banned list, but not found on banned list");
+            console.log("Exiting process");
+            process.exit(1);
+        }
+        
+        bannedSubsList.splice(subIndex, 1);
+        commitMessage += "\n - " + subName;
+    }
+    if (bannedSubChanges.subsToRemove.length == 0) commitMessage += " none";
+
+    commitMessage += "\n";
+    
+    // convert to json and upload updated list to github (if any changes)
+    let bannedSubsListJson = JSON.stringify({
+        bannedSubs: bannedSubsList
+    }, null, 4);
+    
+    let result;
+    
+    try {
+        // use this to get the sha
+        // i know its inefficient as it downloads the whole file
+        // but im tired
+        let fileDetails = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+            owner: 'username-is-required',
+            repo: 'reddark-subinfo',
+            path: 'banned-subs.json',
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        });
+        
+        result = await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+            owner: 'username-is-required',
+            repo: 'reddark-subinfo',
+            path: 'banned-subs.json',
+            message: commitMessage,
+            content: Buffer.from(bannedSubsListJson).toString("base64"),
+            sha: fileDetails.sha,
+            headers: {
+               'X-GitHub-Api-Version': '2022-11-28'
+            }
+        });
+    } catch (err) {
+        console.log("Error while updating banned subs list");
+        console.log(err);
+        console.log("Exiting process");
+        process.exit(1);
+    }
+    
+    console.log("Uploaded updated banned subs list to GitHub, commit " + result.commit.sha);
+    
+    return result;
+}
+
 async function main() {
     console.log("** Started function **");
 
     console.log("Getting list of participating subs");
     let subNames = await getParticipatingSubsList();
-
+    
+    console.log("Getting list of currently recorded banned subs");
+    let bannedSubs = await fetchValidJsonData("https://raw.githubusercontent.com/username-is-required/reddark-subinfo/main/banned-subs.json");
+    bannedSubs = bannedSubs.bannedSubs;
+    
     console.log("Getting list of currently johnoliverified subs");
     let johnOliverSubs = await fetchValidJsonData("https://raw.githubusercontent.com/username-is-required/reddark-subinfo/main/john-oliver-subs.json");
     johnOliverSubs = johnOliverSubs.johnOliverSubs;
     
     let subPromises = [];
+
+    let bannedSubChanges = {
+        subsToAdd: [],
+        subsToRemove: []
+    };
     
     console.log("Looping over participating subs");
     for (let subName of subNames) {
         // is the sub already part of the john oliver cult?
         let subAlreadyJohnOlivered = johnOliverSubs.includes(subName.toLowerCase());
+        
+        // is the sub already recorded as being banned?
+        let subRecordedAsBanned = bannedSubs.includes(subName.toLowerCase());
 
         // send request for sub data asynchronously
         let subPromise = getSubData(subName).then(async subData => {
@@ -214,7 +308,21 @@ async function main() {
             // if the sub doesn't have data skip over it
             // this probably means the sub is private (i think)
             if (subData.data === undefined) {
+                // actually let's check if the sub is banned and we
+                // don't know about it
+                if (!subRecordedAsBanned && subData.reason == "banned") {
+                    // set the sub to be recorded as banned
+                    console.log(subName + ": API displays as banned but not recorded as such. To be added to list");
+                    bannedSubChanges.subsToAdd.push(subName);
+                }
                 return;
+            }
+
+            // if here, the sub appears *not* to be banned. check if it's on the
+            // banned list. if so, set it to be removed.
+            if (subRecordedAsBanned) {
+                console.log(subName + ": API does not display as banned but recorded as such. To be removed from list");
+                bannedSubChanges.subsToRemove.push(subName);
             }
             
             for (let post of subData.data.children) {
@@ -306,6 +414,10 @@ async function main() {
     }
 
     await Promise.all(subPromises);
+
+    // deal with banned sub changes
+    console.log("Processing banned sub changes (if any)");
+    await processBannedSubChanges(bannedSubs, bannedSubChanges);
 
     // we're done! (hopefully)
     console.log("** Function complete **");
