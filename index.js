@@ -190,7 +190,26 @@ return result;
 }
 
 async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
+    for (let subToAdd of bannedSubChanges.subsToAdd) {
+        bannedSubsList.push(subToAdd.toLowerCase());
+    }
     
+    for (let subToRemove of bannedSubChanges.subsToRemove) {
+        let subIndex = bannedSubsList.indexOf(subToRemove.toLowerCase());
+        
+        if (subIndex == -1) {
+            console.log(subToRemove + ": on list to remove from banned list, but not found on banned list");
+            console.log("Exiting process");
+            process.exit(1);
+        }
+        
+        bannedSubsList.splice(subIndex, 1);
+    }
+    
+    // convert to json and upload updated list to github (if any changes)
+    // todo
+
+    return result;
 }
 
 async function main() {
