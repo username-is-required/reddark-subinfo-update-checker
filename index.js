@@ -229,6 +229,9 @@ async function processBannedSubChanges(bannedSubsList, bannedSubChanges) {
 
     commitMessage += "\n";
     
+    // sort banned subs list alphabetically because why not
+    bannedSubsList.sort((a, b) => a.localeCompare(b));
+    
     // convert to json and upload updated list to github (if any changes)
     let bannedSubsListJson = JSON.stringify({
         bannedSubs: bannedSubsList
